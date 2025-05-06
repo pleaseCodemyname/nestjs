@@ -82,23 +82,41 @@ export class PostsService {
     if (!post) {
       throw new NotFoundException();
     }
+    return post;
   }
 
   createPost(author: string, title: string, content: string) {
-    const post = {
-      id: posts[posts.length - 1].id + 1,
-      author, // author : author
+    // 1) create -> 저장할 객체를 생성한다.
+    // 2) save -> 객체를 저장한다. (create 메서드에서 생성한 객체로)
+
+    // id가 존재하지 않는 이유는 DB에서 자동으로 생성해주기 떄문이다.
+    const post = this.postsRepository.create({
+      author,
       title,
       content,
       likeCount: 0,
       commentCount: 0
-    };
+    });
 
-    posts = [...posts, post];
-    return post;
+    const newPost = this.postsRepository.save(post);
+
+    return newPost;
   }
-  updatePost(postId: number, author: string, title: string, content: string) {
-    const post = posts.find((post) => post.id === postId);
+
+  async updatePost(
+    postId: number,
+    author: string,
+    title: string,
+    content: string
+  ) {
+    // save의 기능
+    // 1)  만약 데이터가 존재하지 않는다면(id 기준으로) 새로 생성
+    // 2) 같은 id가 존재하면, 존재하던 값을 업데이트 한다.
+    const post = await this.postsRepository.findOne({
+      where: {
+        id: postId
+      }
+    });
 
     if (!post) {
       throw new NotFoundException();
@@ -112,18 +130,23 @@ export class PostsService {
     if (content) {
       post.content = content;
     }
-    posts = posts.map((prevPost) =>
-      prevPost.id === +postId ? post : prevPost
-    );
 
-    return post;
+    const newPost = await this.postsRepository.save(post);
+
+    return newPost;
   }
-  deletePost(postId: number) {
-    const post = posts.find((post) => post.id === postId);
+
+  async deletePost(postId: number) {
+    const post = await this.postsRepository.findOne({
+      where: {
+        id: postId
+      }
+    });
     if (!post) {
       throw new NotFoundException();
     }
-    posts = posts.filter((post) => post.id !== postId);
+
+    await this.postsRepository.delete(postId);
 
     return postId;
   }

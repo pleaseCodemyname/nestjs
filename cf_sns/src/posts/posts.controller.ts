@@ -20,7 +20,7 @@ export class PostsController {
   //    모든 포스트를 다 가져온다.
   @Get()
   getPosts() {
-    return this.postsService.getAllPosts;
+    return this.postsService.getAllPosts();
   }
 
   // 2) GET /posts/:id
