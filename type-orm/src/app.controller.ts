@@ -23,6 +23,7 @@ export class AppController {
   @Post('users')
   postUsers() {
     return this.userRepository.save({
+      email: '1234@gmail.com',
       // title: 'test title',
       // role: Role.ADMIN,
       // role: 'another role',
@@ -37,6 +38,52 @@ export class AppController {
       //   profile: true,
       //   posts: true,
       // },
+      // 어떤 프로퍼티를 선택할지(가져올지), 기본은 모든 프로퍼티를 가져온다, 만약에 select를 정의하지 않으면, select 정의하면 정의된 프로퍼티만 가져온다.
+      select: {
+        id: true, // id 프로퍼티를 가져온다
+        createdAt: true, // createdAt 프로퍼티를 가져온다.
+        updatedAt: true, // updatedAt 프로퍼티를 가져온다.
+        version: true,
+        profile: {
+          id: true, // profile에서 id값만 가져옴
+        },
+      },
+      // 필터링할 조건을 입력하게 된다.
+      where: [
+        // // id: 4, // id에 해당하는 값 가져옴, select는 해당 프로퍼티
+        // version: 1,
+        // id: 4, // id는 4이고, version은 1인 경우만 가져오게됨
+
+        // id가 4이고 version이 1인 경우 [] 리스트로 제공(OR), {} 같은 객체 안에서 값을 넣는 것은 모두 And 조건으로 묶인다.
+        {
+          id: 3,
+        },
+        {
+          version: 1,
+        },
+      ],
+      // 관계를 가져오는법
+      relations: {
+        profile: true, // profile 프로퍼티 포함돼서 가져옴
+      },
+
+      // 다른 where 버전
+      // where: {
+      //   profile: {
+      //     id: 3,
+      //   },
+      // },
+      // relations: {
+      //   profile: true,
+      // },
+
+      // 오름차(ASC), 내림차 순(DESC)
+      order: {
+        id: 'DESC',
+      },
+      // 처음 몇개를 제외할지,
+      skip: 0,
+      take: 2, // take: 1 (1개만 가져옴) | take: 2 (2개만 가져옴)
     });
   }
 
@@ -49,6 +96,7 @@ export class AppController {
     });
     return this.userRepository.save({
       ...user,
+      email: user.email + '0',
       // title: user.title + '0',
     });
   }
