@@ -3,10 +3,15 @@ import {
   CreateDateColumn,
   Entity,
   Generated,
+  JoinColumn,
+  OneToMany,
+  OneToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
+import { ProfileModel } from './porfile.entity';
+import { PostModel } from './post.entity';
 
 export enum Role {
   USER = 'user',
@@ -22,26 +27,29 @@ export class UserModel {
   @PrimaryGeneratedColumn()
   id: number; // id
 
-  // 제목
-  @Column({
-    // 데이터베이스에서 인지하는 컬럼 타입, 자동으로 유추됨
-    type: 'varchar',
-    // 데이터베이스 칼럼 이름, 프로퍼티 이름으로 자동 유추됨
-    name: 'title',
-    // 값의 길이, 입력할 수 있는 글자의 길이 300
-    length: 300,
-    // null이 가능한지
-    nullable: true,
-    // true면 처음 생성(저장)할 때만 지정 가능, 이후에는 값 변경 불가능,
-    update: false,
-    // find()를 실행할 때 기본으로 값을 불러올지, 기본값이 true,
-    select: false,
-    // 기본값, 아무것도 입력 안했을 때 기본으로 입력되게 되는 값
-    default: 'default value',
-    // 컬럼 중 유일무이한 값이여야하는지? unique:true는 중복된 값 방지
-    unique: false,
-  })
-  title: string;
+  @Column()
+  email: string;
+
+  // // 제목
+  // @Column({
+  //   // 데이터베이스에서 인지하는 컬럼 타입, 자동으로 유추됨
+  //   type: 'varchar',
+  //   // 데이터베이스 칼럼 이름, 프로퍼티 이름으로 자동 유추됨
+  //   name: 'title',
+  //   // 값의 길이, 입력할 수 있는 글자의 길이 300
+  //   length: 300,
+  //   // null이 가능한지
+  //   nullable: true,
+  //   // true면 처음 생성(저장)할 때만 지정 가능, 이후에는 값 변경 불가능,
+  //   update: false,
+  //   // find()를 실행할 때 기본으로 값을 불러올지, 기본값이 true,
+  //   select: false,
+  //   // 기본값, 아무것도 입력 안했을 때 기본으로 입력되게 되는 값
+  //   default: 'default value',
+  //   // 컬럼 중 유일무이한 값이여야하는지? unique:true는 중복된 값 방지
+  //   unique: false,
+  // })
+  // title: string;
 
   @Column({
     type: 'enum',
@@ -69,4 +77,12 @@ export class UserModel {
   @Column() // @Generated는 무조건 @Column()이랑 같이 사용
   @Generated('increment') // increment: primary 컬럼은 아닌데, 데이터 생성마다 1씩 증가 | 'uuid'
   additionalId: number;
+
+  @OneToOne(() => ProfileModel, (profile) => profile.user)
+  @JoinColumn()
+  profile: ProfileModel;
+
+  // 유저 하나가 여러개의 포스트 소유, one-to-one과 many-to-one에서 무조건 many-to-one에서 아이디를 들고 있음
+  @OneToMany(() => PostModel, (post) => post.author) // @JoinColumn 할 필요없음
+  posts: PostModel[];
 }
