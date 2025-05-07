@@ -78,7 +78,24 @@ export class UserModel {
   @Generated('increment') // increment: primary 컬럼은 아닌데, 데이터 생성마다 1씩 증가 | 'uuid'
   additionalId: number;
 
-  @OneToOne(() => ProfileModel, (profile) => profile.user)
+  @OneToOne(() => ProfileModel, (profile) => profile.user, {
+    // find() 실행할 때마다 항상 같이 가져올 relation
+    eager: true, // query에서자동으로 가져오게됨, eager: false 시 자동으로 profile 가져오지 않음
+    // 저장할 때 relation을 한 번에 같이 저장 가능(true)
+    cascade: true,
+    // null이 가능한지 (false면 null이 존재하면 안됨)
+    nullable: true, // QueryFailedError: null value in column "profileId" of relation "user_model" violates not-null constraint
+
+    // on이 붙으면, ~했을때 란 의미, 삭제했을 때 여러가지 옵션 관계가 삭제됐을 때
+    // no action -> 아무것도 안함
+    // cascade -> 참조하는 Row도 같이 삭제 (profile 삭제 시 id까지 같이 삭제됨)
+    // set null -> 참조하는 Row에서 참조 id를 null로 변경 (참조하는 ProfileId가 삭제되어서 삭제된 profileId = null)
+    // set default -> 기본 세팅으로 설정(테이블의 기본 세팅)
+    /* restrict -> 참조하고 있는 Row가 있는 경우 참조당하는 Row 삭제 불가 (profileId 삭제하려니 할수 없음, 참조하고 있는 모델: UserModel, 참조당하는 모델: Profile Model)
+     * QueryFailedError: update or delete on table "profile_model" violates foreign key constraint "FK_33686d4502fd64f91602cea5fa7" on table "user_model"
+     */
+    onDelete: 'RESTRICT',
+  })
   @JoinColumn()
   profile: ProfileModel;
 

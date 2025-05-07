@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Patch, Post } from '@nestjs/common';
+import { Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { AppService } from './app.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Role, UserModel } from 'entity/user.entity';
@@ -32,10 +32,11 @@ export class AppController {
   @Get('users')
   getUsers() {
     return this.userRepository.find({
-      relations: {
-        profile: true,
-        posts: true,
-      },
+      // 이 relations을 포함해야 get요청에서 포함되서 나왔는데, user.entity.ts에서 @onetoone에서 eager: true로 설정하니 명시안해줘도 자동으로 profile을 가져올 수 있음.
+      // relations: {
+      //   profile: true,
+      //   posts: true,
+      // },
     });
   }
 
@@ -52,16 +53,25 @@ export class AppController {
     });
   }
 
+  @Delete('user/profile/:id')
+  async deleteProfile(@Param('id') id: string) {
+    await this.profileRepository.delete(+id);
+  }
+
   @Post('user/profile')
   async creatUserAndProfile() {
     const user = await this.userRepository.save({
       email: 'asdf@naver.com',
+      profile: {
+        profileImg: 'asdf.jpg',
+      },
     });
 
-    const profile = await this.profileRepository.save({
-      profileImg: 'asdf.jpg',
-      user,
-    });
+    // const profile = await this.profileRepository.save({
+    //   profileImg: 'asdf.jpg',
+    //   user,
+    // });
+
     return user;
   }
 
