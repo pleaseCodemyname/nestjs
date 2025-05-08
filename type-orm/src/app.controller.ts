@@ -20,6 +20,7 @@ import { ProfileModel } from 'entity/porfile.entity';
 import { PostModel } from 'entity/post.entity';
 import { TagModel } from 'entity/tag.entity';
 import { equal } from 'assert';
+import { min } from 'rxjs';
 
 @Controller()
 export class AppController {
@@ -34,6 +35,111 @@ export class AppController {
     private readonly tagRepository: Repository<TagModel>,
   ) {}
 
+  @Post('sample')
+  async sample() {
+    // 모델에 해당되는 객체 생성 - DB에 저장을 안함, user1의 type: UserModel
+    //   const user1 = this.userRepository.create({
+    //     email: 'test@codefactory.ai',
+    //   });
+    //   return user1; // 객체를 생성은 하지만 DB에 저장은 안한다.
+    // }
+
+    // 저장
+    //   const user2 = await this.userRepository.save({
+    //     email: 'test@codefactory.ai', // id: 101
+    //   });
+
+    //   return user2;
+    // }
+
+    // preload: 입력된 값을 기반으로 데이터베이스에 있는 데이터를 불러오고 추가 입력된 값으로 DB에서 가져온 값들을 대체하지만, 저장하지는 않음
+    //   const user3 = await this.userRepository.preload({
+    //     id: 302, // 가져올 값
+    //     email: 'codefacotry@codefactory.ai', // 추가 입력된 값
+    //   });
+    //   return user3;
+    // }
+
+    //   // 삭제하기
+    //   await this.userRepository.delete(302);
+    //   return true;
+    // }
+
+    // 값을 증가시킴(increment)
+    //   await this.userRepository.increment(
+    //     {
+    //       id: 3, // id가 1이면
+    //     },
+    //     'count', // count 프로퍼티를 2만큼 증가
+    //     100,
+    //   );
+    //   return true;
+    // }
+
+    // 값을 감소시킴(decrement)
+    //   await this.userRepository.decrement(
+    //     {
+    //       id: 1,
+    //     },
+    //     'count',
+    //     1,
+    //   );
+    // }
+
+    // 갯수 카운팅
+    //   const count = await this.userRepository.count({
+    //     where: {
+    //       email: ILike('%0%'), // email에 0이 포함된 갯수: 10개
+    //     },
+    //   });
+    //   return count;
+    // }
+
+    // sum(어떤 프로퍼티를 합칠 것인지 입력 => 'count')
+    //   const sum = await this.userRepository.sum('count', {
+    //     id: LessThan(4),
+    //   });
+    //   return sum;
+    // }
+
+    // average
+    //   const average = await this.userRepository.average('count', {
+    //     id: LessThan(4),
+    //   });
+    //   return average;
+    // }
+
+    // 최소값
+    //   const min = await this.userRepository.minimum('count', {
+    //     id: LessThan(4),
+    //   });
+    //   return min;
+    // }
+
+    // 최대값
+    //   const max = await this.userRepository.maximum('count', {
+    //     id: LessThan(4),
+    //   });
+    //   return max;
+    // }
+
+    // 모든 사용자 다 찾기
+    // const users = await this.userRepository.find({});
+
+    // 하나의 사용자 찾기
+    // const userOne = await this.userRepository.findOne({
+    //   where: {
+    //     id: 3
+    //   }
+    // })
+
+    // pagination: 값들을 찾고, 몇 개의 전체 값이 존재하는지 필터
+    const usersAndCount = await this.userRepository.findAndCount({
+      take: 3,
+    });
+    return usersAndCount; // 3개를 가져오고, 전체 값 100개가 있음을 명시함
+  }
+
   @Post('users')
   async postUsers() {
     for (let i = 0; i < 100; i++) {
@@ -46,6 +152,9 @@ export class AppController {
   @Get('users')
   getUsers() {
     return this.userRepository.find({
+      order: {
+        id: 'ASC',
+      },
       where: {
         // id: Not(1), // 1이 아닌 경우, 1을 제외하고 가져오기 (2-100)
         // id: LessThan(30), // id가 30 전까지 가져오기 (1-29)
@@ -57,7 +166,7 @@ export class AppController {
         // email: ILike('%GOOGLE%'), // 대문자 소문자 구분 안하고 모든 값 찾아옴
         // id: Between(10, 15), // id (10-15) 가져옴 (사이값)
         // id: In([1, 3, 5, 7, 99]), // id 값이 [1, 3, 5, 7, 99] 가져옴 (정확한 값)
-        id: IsNull(), // id가 null 인경우 가져옴
+        // id: IsNull(), // id가 null 인경우 가져옴
       },
 
       // 이 relations을 포함해야 get요청에서 포함되서 나왔는데, user.entity.ts에서 @onetoone에서 eager: true로 설정하니 명시안해줘도 자동으로 profile을 가져올 수 있음.

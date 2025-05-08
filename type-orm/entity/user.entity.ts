@@ -102,4 +102,9 @@ export class UserModel {
   // 유저 하나가 여러개의 포스트 소유, one-to-one과 many-to-one에서 무조건 many-to-one에서 아이디를 들고 있음
   @OneToMany(() => PostModel, (post) => post.author) // @JoinColumn 할 필요없음
   posts: PostModel[];
+
+  @Column({
+    default: 0,
+  })
+  count: number;
 }
