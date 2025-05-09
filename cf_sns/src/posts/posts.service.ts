@@ -85,13 +85,16 @@ export class PostsService {
     return post;
   }
 
-  createPost(author: string, title: string, content: string) {
+  createPost(authorId: number, title: string, content: string) {
     // 1) create -> 저장할 객체를 생성한다.
     // 2) save -> 객체를 저장한다. (create 메서드에서 생성한 객체로)
 
     // id가 존재하지 않는 이유는 DB에서 자동으로 생성해주기 떄문이다.
     const post = this.postsRepository.create({
-      author,
+      // 어떤 author랑 연결할지 입력해야함
+      author: {
+        id: authorId // UsersModel의 id값, UsersModel
+      },
       title,
       content,
       likeCount: 0,
@@ -103,12 +106,7 @@ export class PostsService {
     return newPost;
   }
 
-  async updatePost(
-    postId: number,
-    author: string,
-    title: string,
-    content: string
-  ) {
+  async updatePost(postId: number, title: string, content: string) {
     // save의 기능
     // 1)  만약 데이터가 존재하지 않는다면(id 기준으로) 새로 생성
     // 2) 같은 id가 존재하면, 존재하던 값을 업데이트 한다.
@@ -120,9 +118,6 @@ export class PostsService {
 
     if (!post) {
       throw new NotFoundException();
-    }
-    if (author) {
-      post.author = author;
     }
     if (title) {
       post.title = title;
