@@ -16,7 +16,7 @@ import {
   Not,
   Repository,
 } from 'typeorm';
-import { ProfileModel } from 'entity/porfile.entity';
+import { ProfileModel } from 'entity/profile.entity';
 import { PostModel } from 'entity/post.entity';
 import { TagModel } from 'entity/tag.entity';
 import { equal } from 'assert';

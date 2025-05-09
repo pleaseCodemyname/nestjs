@@ -11,7 +11,7 @@ import {
   ComputerModel,
   SingleBaseModel,
 } from 'entity/inheritance.entity';
-import { ProfileModel } from 'entity/porfile.entity';
+import { ProfileModel } from 'entity/profile.entity';
 import { PostModel } from 'entity/post.entity';
 import { TagModel } from 'entity/tag.entity';
 

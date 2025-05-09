@@ -10,7 +10,7 @@ import {
   UpdateDateColumn,
   VersionColumn,
 } from 'typeorm';
-import { ProfileModel } from './porfile.entity';
+import { ProfileModel } from './profile.entity';
 import { PostModel } from './post.entity';
 
 export enum Role {
