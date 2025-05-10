@@ -82,6 +82,7 @@ export class PostsService {
       },
       relations: ['author']
     });
+
     if (!post) {
       throw new NotFoundException();
     }
