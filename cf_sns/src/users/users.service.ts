@@ -26,4 +26,13 @@ export class UsersService {
   async getAllUsers() {
     return this.usersRepository.find();
   }
+
+  // 3. 유저가 존재하는지 확인(email)
+  async getUserByEmail(email: string) {
+    return this.usersRepository.findOne({
+      where: {
+        email
+      }
+    });
+  }
 }
