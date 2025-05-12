@@ -1,6 +1,6 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersModel } from 'src/users/entities/users.entity';
-import { JWT_SECRET } from './const/auth.const';
+import { HASH_ROUNDS, JWT_SECRET } from './const/auth.const';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
@@ -21,7 +21,7 @@ export class AuthService {
    *
    * 2) loginWithEmail
    * - email, password를 입력하면 사용자 검증 진행
-   * - 검증 완료 후 accessToken&refreshToken 반화
+   * - 검증 완료 후 accessToken&refreshToken 반환
    *
    * 3) loginUser
    * - (1)&(2)에서 필요한 access&refreshToken 반환 로직 생성
@@ -94,5 +94,35 @@ export class AuthService {
       throw new UnauthorizedException('비밀번호가 틀렸습니다.');
     }
     return existingUser;
+  }
+
+  /**
+   * 2) loginWithEmail
+   * - email, password를 입력하면 사용자 검증 진행
+   * - 검증 완료 후 accessToken&refreshToken 반화
+   */
+  async loginWithEmail(user: Pick<UsersModel, 'email' | 'password'>) {
+    const existingUser = await this.authenticateWithEmailAndPassword(user);
+
+    return this.loginUser(existingUser);
+  }
+
+  /**
+   * 1) registerWithEmail
+   * - email, nickname, password를 입력받고 사용자 생성
+   * - 생성 완료 후 accessToken & refresh Token 반환
+   * - 회원 가입 후 다시 로그인해주세요 없애기
+   */
+  async registerWithEmail(
+    user: Pick<UsersModel, 'nickname' | 'email' | 'password'>
+  ) {
+    const hash = await bcrypt.hash(
+      user.password, // 이 실제 비밀번호를 hash함.
+      HASH_ROUNDS // 몇 번 해싱 돌릴껀지? Salt는 자동생성됨
+    );
+    // 해시가 생성이 잘 된 경우, 유저 생성
+    const newUser = await this.usersService.createUser(user);
+
+    return this.loginUser(newUser); // 회원 가입후 바로 로그인, 검증 완료 후 accessToken&refreshToken 반환
   }
 }

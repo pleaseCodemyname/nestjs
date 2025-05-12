@@ -11,7 +11,14 @@ export class UsersController {
     @Body('email') email: string,
     @Body('password') password: string
   ) {
-    return this.usersService.createUser(nickname, email, password);
+    // 이전 버전
+    // return this.usersService.createUser(nickname, email, password);
+    // 새로운 버전 파라미터를 user: Pick<UsersModel, 'email' | 'nickname' | 'password'>)로 바꿨으니깐 object(객체{}로 변경해야함)
+    return this.usersService.createUser({
+      nickname,
+      email,
+      password
+    });
   }
 
   @Get()
