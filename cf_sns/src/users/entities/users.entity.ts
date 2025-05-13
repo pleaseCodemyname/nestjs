@@ -8,12 +8,10 @@ import {
 } from 'typeorm';
 import { RolesEnum } from '../const/roles.const';
 import { PostsModel } from 'src/posts/entities/posts.entity';
+import { BaseModel } from 'src/common/entity/base.entity';
 
 @Entity()
-export class UsersModel {
-  @PrimaryGeneratedColumn()
-  id: number;
-
+export class UsersModel extends BaseModel {
   @Column({
     length: 20, // 1) 길이가 20을 넘지 않을 것 (최대 20)
     unique: true // 2) 유일무이한 값이 될 것 (중복되지 않아야할 것), false면 중복값 허용
@@ -36,12 +34,4 @@ export class UsersModel {
 
   @OneToMany(() => PostsModel, (posts) => posts.author)
   posts: PostsModel[];
-
-  // 데이터 변동 시 자동으로 업데이트된 날짜 찍힘
-  @UpdateDateColumn()
-  updatedAt: Date;
-
-  // 데이터 생성 시 자동으로 업데이트된 날짜 찍힘
-  @CreateDateColumn()
-  createdAt: Date;
 }

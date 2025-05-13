@@ -1,11 +1,9 @@
+import { BaseModel } from 'src/common/entity/base.entity';
 import { UsersModel } from 'src/users/entities/users.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
-export class PostsModel {
-  @PrimaryGeneratedColumn() // 이렇게 지정을 해주면 DB에서 id가 하나씩 증가하게 PK로 배정을 해줌
-  id: number;
-
+export class PostsModel extends BaseModel {
   // 1) UsersModel과 연동, Foreign Key 설정
   // 2) Null이 될 수 없다.
   @ManyToOne(() => UsersModel, (user) => user.posts, {

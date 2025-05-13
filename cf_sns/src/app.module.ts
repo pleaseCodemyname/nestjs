@@ -7,6 +7,7 @@ import { PostsModel } from './posts/entities/posts.entity';
 import { UsersModule } from './users/users.module';
 import { UsersModel } from './users/entities/users.entity';
 import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
 
 @Module({
   // 다른 모듈을 불러올 때 사용
@@ -24,7 +25,8 @@ import { AuthModule } from './auth/auth.module';
       synchronize: true // NestJS에서 작성하는 Type ORM 코드와 데이터베이스의 동기화를 자동으로 맞출 것인가? (개발환경에서는 True, 프로덕션 환경에서는 False)
     }),
     UsersModule,
-    AuthModule
+    AuthModule,
+    CommonModule
   ],
   controllers: [AppController],
   providers: [AppService]
