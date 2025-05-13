@@ -1,4 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn
+} from 'typeorm';
 import { RolesEnum } from '../const/roles.const';
 import { PostsModel } from 'src/posts/entities/posts.entity';
 
@@ -29,4 +36,12 @@ export class UsersModel {
 
   @OneToMany(() => PostsModel, (posts) => posts.author)
   posts: PostsModel[];
+
+  // 데이터 변동 시 자동으로 업데이트된 날짜 찍힘
+  @UpdateDateColumn()
+  updatedAt: Date;
+
+  // 데이터 생성 시 자동으로 업데이트된 날짜 찍힘
+  @CreateDateColumn()
+  createdAt: Date;
 }
