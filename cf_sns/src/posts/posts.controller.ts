@@ -17,6 +17,7 @@ import { PostsService } from './posts.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { UsersModel } from 'src/users/entities/users.entity';
 import { User } from 'src/users/decorator/user.decorator';
+import { createPostDto } from './dto/create-post.dto';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -42,14 +43,17 @@ export class PostsController {
   // 3) POST /posts
   //    POST를 생성한다.
   // accessToken을 넣은 상태로 요청하면 로그인한 사용자임을 알 수 있음
+
+  // DTO - Data Transfer Object (데이터를 전송하는 객체)
   @Post()
   @UseGuards(AccessTokenGuard)
   postPosts(
     @User('id') userId: number,
-    @Body('title') title: string,
-    @Body('content') content: string
+    @Body() body: createPostDto
+    // @Body('title') title: string,
+    // @Body('content') content: string
   ) {
-    return this.postsService.createPost(userId, title, content);
+    return this.postsService.createPost(userId, body);
   }
   // 4) PUT /posts/:id
   //    id에 해당되는 POST를 변경한다.

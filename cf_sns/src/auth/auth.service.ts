@@ -154,7 +154,7 @@ export class AuthService {
   // 3. loginUser
   loginUser(user: Pick<UsersModel, 'email' | 'id'>) {
     return {
-      accesToken: this.signToken(user, false),
+      accessToken: this.signToken(user, false),
       refreshToken: this.signToken(user, true)
     };
   }
