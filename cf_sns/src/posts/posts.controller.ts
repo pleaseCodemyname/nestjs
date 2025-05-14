@@ -17,7 +17,8 @@ import { PostsService } from './posts.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { UsersModel } from 'src/users/entities/users.entity';
 import { User } from 'src/users/decorator/user.decorator';
-import { createPostDto } from './dto/create-post.dto';
+import { CreatePostDto } from './dto/create-post.dto';
+import { UpdatePostDto } from './dto/update-post.dto';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -49,7 +50,7 @@ export class PostsController {
   @UseGuards(AccessTokenGuard)
   postPosts(
     @User('id') userId: number,
-    @Body() body: createPostDto
+    @Body() body: CreatePostDto
     // @Body('title') title: string,
     // @Body('content') content: string
   ) {
@@ -60,10 +61,11 @@ export class PostsController {
   @Put(':id')
   putPost(
     @Param('id', ParseIntPipe) id: number,
-    @Body('title') title?: string,
-    @Body('content') content?: string
+    @Body() body: UpdatePostDto
+    // @Body('title') title?: string,
+    // @Body('content') content?: string
   ) {
-    return this.postsService.updatePost(id, title, content);
+    return this.postsService.updatePost(id, body);
   }
 
   // 5) DELETE /posts/:id
