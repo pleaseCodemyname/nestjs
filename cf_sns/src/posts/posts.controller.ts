@@ -9,9 +9,14 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  Put
+  Put,
+  UseGuards,
+  Request
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
+import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
+import { UsersModel } from 'src/users/entities/users.entity';
+import { User } from 'src/users/decorator/user.decorator';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -36,14 +41,15 @@ export class PostsController {
 
   // 3) POST /posts
   //    POST를 생성한다.
+  // accessToken을 넣은 상태로 요청하면 로그인한 사용자임을 알 수 있음
   @Post()
+  @UseGuards(AccessTokenGuard)
   postPosts(
-    @Body('authorId') authorId: number,
+    @User('id') userId: number,
     @Body('title') title: string,
-    @Body('content') content: string,
-    @Body('isPublic', new DefaultValuePipe(true)) isPublic: boolean
+    @Body('content') content: string
   ) {
-    return this.postsService.createPost(authorId, title, content);
+    return this.postsService.createPost(userId, title, content);
   }
   // 4) PUT /posts/:id
   //    id에 해당되는 POST를 변경한다.
