@@ -4,6 +4,7 @@ import { HASH_ROUNDS, JWT_SECRET } from './const/auth.const';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -205,9 +206,7 @@ export class AuthService {
    * - 생성 완료 후 accessToken & refresh Token 반환
    * - 회원 가입 후 다시 로그인해주세요 없애기
    */
-  async registerWithEmail(
-    user: Pick<UsersModel, 'nickname' | 'email' | 'password'>
-  ) {
+  async registerWithEmail(user: RegisterUserDto) {
     const hash = await bcrypt.hash(
       user.password, // 이 실제 비밀번호를 hash함.
       HASH_ROUNDS // 몇 번 해싱 돌릴껀지? Salt는 자동생성됨
