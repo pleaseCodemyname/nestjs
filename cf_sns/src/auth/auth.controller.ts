@@ -1,20 +1,33 @@
-import { Body, Controller, Headers, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Headers,
+  Post,
+  UseGuards,
+  Request
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   MaxLengthPipe,
   MinLengthPipe,
   PasswordPipe
 } from './pipe/password.pipe';
+import { BasicTokenGuard } from './guard/basic-token.guard';
+import {
+  AccessTokenGuard,
+  RefreshTokenGuard
+} from './guard/bearer-token.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('token/access')
+  @UseGuards(RefreshTokenGuard)
   postTokenAccess(@Headers('authorization') rawToken: string) {
     const token = this.authService.extractTokenFromHeader(rawToken, true);
 
-    const newToken = this.authService.rotateToken(token, false); // accessToken 발급급
+    const newToken = this.authService.rotateToken(token, false); // accessToken 발급
 
     /**
      * 반환
@@ -27,6 +40,7 @@ export class AuthController {
   }
 
   @Post('token/refresh')
+  @UseGuards(RefreshTokenGuard)
   postTokenRefresh(@Headers('authorization') rawToken: string) {
     const token = this.authService.extractTokenFromHeader(rawToken, true);
 
@@ -44,9 +58,10 @@ export class AuthController {
 
   // Post는 Body 요청
   @Post('login/email')
+  @UseGuards(BasicTokenGuard)
   // loginEmail(@Body('email') email: string, @Body('password') password: string) {
   // body에서 email과 password를 받는 형식 --> header에서 token을 받는 형식으로 변경
-  postLoginEmail(@Headers('authorization') rawToken: string) {
+  postLoginEmail(@Headers('authorization') rawToken: string, @Request() req) {
     const token = this.authService.extractTokenFromHeader(rawToken, false);
 
     const credentials = this.authService.decodeBaiscToken(token); // token은 실제로 추출된 토큰 from extractTokenFromHeader
