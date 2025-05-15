@@ -19,6 +19,7 @@ import {
 import { lengthValidationMessage } from 'src/common/validation-message/length-validation.message';
 import { stringValidationMessage } from 'src/common/validation-message/string-validation.message';
 import { emailValidationMessage } from 'src/common/validation-message/email-validation.message';
+import { Exclude } from 'class-transformer';
 
 @Entity()
 export class UsersModel extends BaseModel {
@@ -55,6 +56,7 @@ export class UsersModel extends BaseModel {
   @Length(3, 8, {
     message: lengthValidationMessage
   }) // auth.controller.ts에서 @Body('password', new MaxLengthPipe(8, '비밀번호'), new MinLengthPipe(3)) 이걸 annotation으로 줄인 것
+  @Exclude()
   password: string;
 
   @Column({
