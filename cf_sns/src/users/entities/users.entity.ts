@@ -56,7 +56,22 @@ export class UsersModel extends BaseModel {
   @Length(3, 8, {
     message: lengthValidationMessage
   }) // auth.controller.ts에서 @Body('password', new MaxLengthPipe(8, '비밀번호'), new MinLengthPipe(3)) 이걸 annotation으로 줄인 것
-  @Exclude()
+
+  /**
+   * Request
+   * frontend -> backend
+   * plain object (JSON) -> class instance (dto)
+   *
+   * Response
+   * backend -> frontend
+   * class instance (dto) -> plain object (JSON)
+   *
+   * toClassOnly -> class instance로 변환될때만 (요청)
+   * toPlainOnly -> plain object로 변환될때만 (응답)
+   */
+  @Exclude({
+    toPlainOnly: true // 응답이 나갈때만 exclude를 시켜야함
+  })
   password: string;
 
   @Column({

@@ -11,7 +11,9 @@ import {
   Post,
   UseGuards,
   Request,
-  Patch
+  Patch,
+  UseInterceptors,
+  ClassSerializerInterceptor
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
