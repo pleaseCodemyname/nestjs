@@ -13,7 +13,8 @@ import {
   Request,
   Patch,
   UseInterceptors,
-  ClassSerializerInterceptor
+  ClassSerializerInterceptor,
+  Query
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
@@ -21,6 +22,7 @@ import { UsersModel } from 'src/users/entities/users.entity';
 import { User } from 'src/users/decorator/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { PaginatePostDto } from './dto/paginate-post.dto';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -28,10 +30,10 @@ export class PostsController {
   constructor(private readonly postsService: PostsService) {}
 
   // 1) GET /posts
-  //    모든 포스트를 다 가져온다.
+  // 모든 포스트를 다 가져온다.
   @Get()
-  getPosts() {
-    return this.postsService.getAllPosts();
+  getPosts(@Query() query: PaginatePostDto) {
+    return this.postsService.paginatePosts(query);
   }
 
   // 2) GET /posts/:id
