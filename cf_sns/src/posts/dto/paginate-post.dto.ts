@@ -4,7 +4,8 @@ import { IsIn, IsNumber, IsOptional } from 'class-validator';
 export class PaginatePostDto {
   // 이전 마지막 데이터의 ID
   // 이 프로퍼티에 입력된 ID보다 높은 ID부터 값을 가져오기
-  @Type(() => Number)
+  // @Type(() => Number) // Query문은 string으로 반환하는데, 그걸 number로 변환
+  // main.ts에서 transformOptions: { enableImplicitConversion: true} 이렇게 가능
   @IsNumber()
   @IsOptional()
   where__id_more_than?: number;

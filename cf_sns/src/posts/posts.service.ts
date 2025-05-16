@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginatePostDto } from './dto/paginate-post.dto';
+import { HOST, PROTOCOL } from 'src/common/const/env.const';
 
 /**
  * author: string;
@@ -87,7 +88,7 @@ export class PostsService {
     }
   }
 
-  // 1) 오름차 순으로 정렬한느 pagination만 구현한다.
+  // 1) 오름차 순으로 정렬하는 pagination만 구현한다.
   async paginatePosts(dto: PaginatePostDto) {
     // 1, 2, 3, 4, 5
     const posts = await this.postsRepository.find({
@@ -97,8 +98,32 @@ export class PostsService {
       order: {
         createdAt: dto.order__createdAt // 오름차순 정렬
       },
-      take: dto.take
+      take: dto.take // 20개
     });
+
+    // 해당되는 포스트가 0개 이상이면 마지막 포스트를 가져오고, 아니면 null을 반환한다.
+    const lastItem = posts.length > 0 ? posts[posts.length - 1] : null;
+
+    const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/posts`);
+
+    if (nextUrl) {
+      /**
+       * dto의 키값들을 루핑하면서 키값에 해당되는 벨류가 존재하면 param에 그대로 붙여넣는다.
+       * 단, where__id_more_than 값만 lastItem의 마지막 값으로 넣어준다.
+       */
+      for (const key of Object.keys(dto)) {
+        if (dto[key]) {
+          if (key !== 'where__id_more_than') {
+            nextUrl.searchParams.append(key, dto[key]);
+          }
+        }
+      }
+      // where_id__more_than이 query에 넣어주지 않은 경우 자동으로 추가됨
+      nextUrl.searchParams.append(
+        'where__id_more_than',
+        lastItem.id.toString()
+      );
+    }
 
     /**
      * Response
@@ -111,7 +136,12 @@ export class PostsService {
      * next: 다음 요청을 할 때 사용할 URL
      */
     return {
-      data: posts
+      data: posts,
+      cursor: {
+        after: lastItem?.id
+      },
+      count: posts.length,
+      next: nextUrl?.toString()
     };
   }
 
@@ -129,7 +159,7 @@ export class PostsService {
     return post;
   }
 
-  createPost(authorId: number, postDto: CreatePostDto) {
+  async createPost(authorId: number, postDto: CreatePostDto) {
     // 1) create -> 저장할 객체를 생성한다.
     // 2) save -> 객체를 저장한다. (create 메서드에서 생성한 객체로)
 
@@ -144,7 +174,7 @@ export class PostsService {
       commentCount: 0
     });
 
-    const newPost = this.postsRepository.save(post);
+    const newPost = await this.postsRepository.save(post);
 
     return newPost;
   }
