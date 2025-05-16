@@ -1,6 +1,6 @@
 // service파일에 로직 구현, controller에서는 불러오기
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { MoreThan, Repository } from 'typeorm';
+import { FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
 import { PostsModel } from './entities/posts.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -90,11 +90,21 @@ export class PostsService {
 
   // 1) 오름차 순으로 정렬하는 pagination만 구현한다.
   async paginatePosts(dto: PaginatePostDto) {
+    const where: FindOptionsWhere<PostsModel> = {};
+
+    if (dto.where__id_less_than) {
+      /**
+       * id: LessThan(dto.where__id_less_than);
+       */
+      where.id = LessThan(dto.where__id_less_than);
+    } else if (dto.where__id_more_than) {
+      where.id = MoreThan(dto.where__id_more_than);
+    }
+
     // 1, 2, 3, 4, 5
     const posts = await this.postsRepository.find({
-      where: {
-        id: MoreThan(dto.where__id_more_than ?? 0)
-      },
+      where,
+      // order__createdAt
       order: {
         createdAt: dto.order__createdAt // 오름차순 정렬
       },
@@ -102,7 +112,10 @@ export class PostsService {
     });
 
     // 해당되는 포스트가 0개 이상이면 마지막 포스트를 가져오고, 아니면 null을 반환한다.
-    const lastItem = posts.length > 0 ? posts[posts.length - 1] : null;
+    const lastItem =
+      posts.length > 0 && posts.length === dto.take
+        ? posts[posts.length - 1]
+        : null;
 
     const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/posts`);
 
@@ -113,16 +126,21 @@ export class PostsService {
        */
       for (const key of Object.keys(dto)) {
         if (dto[key]) {
-          if (key !== 'where__id_more_than') {
+          if (key !== 'where__id_more_than' && key !== 'where__id_less_than') {
             nextUrl.searchParams.append(key, dto[key]);
           }
         }
       }
+
+      let key = null;
+
+      if (dto.order__createdAt === 'ASC') {
+        key = 'where__id_more_than';
+      } else {
+        key = 'where__id_less_than';
+      }
       // where_id__more_than이 query에 넣어주지 않은 경우 자동으로 추가됨
-      nextUrl.searchParams.append(
-        'where__id_more_than',
-        lastItem.id.toString()
-      );
+      nextUrl.searchParams.append(key, lastItem.id.toString());
     }
 
     /**
@@ -138,10 +156,10 @@ export class PostsService {
     return {
       data: posts,
       cursor: {
-        after: lastItem?.id
+        after: lastItem?.id ?? null
       },
       count: posts.length,
-      next: nextUrl?.toString()
+      next: nextUrl?.toString() ?? null
     };
   }
 
