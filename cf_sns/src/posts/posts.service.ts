@@ -92,13 +92,13 @@ export class PostsService {
   async paginatePosts(dto: PaginatePostDto) {
     const where: FindOptionsWhere<PostsModel> = {};
 
-    if (dto.where__id_less_than) {
+    if (dto.where__id__less_than) {
       /**
        * id: LessThan(dto.where__id_less_than);
        */
-      where.id = LessThan(dto.where__id_less_than);
-    } else if (dto.where__id_more_than) {
-      where.id = MoreThan(dto.where__id_more_than);
+      where.id = LessThan(dto.where__id__less_than);
+    } else if (dto.where__id__more_than) {
+      where.id = MoreThan(dto.where__id__more_than);
     }
 
     // 1, 2, 3, 4, 5
@@ -126,7 +126,10 @@ export class PostsService {
        */
       for (const key of Object.keys(dto)) {
         if (dto[key]) {
-          if (key !== 'where__id_more_than' && key !== 'where__id_less_than') {
+          if (
+            key !== 'where__id__more_than' &&
+            key !== 'where__id__less_than'
+          ) {
             nextUrl.searchParams.append(key, dto[key]);
           }
         }
@@ -135,9 +138,9 @@ export class PostsService {
       let key = null;
 
       if (dto.order__createdAt === 'ASC') {
-        key = 'where__id_more_than';
+        key = 'where__id__more_than';
       } else {
-        key = 'where__id_less_than';
+        key = 'where__id__less_than';
       }
       // where_id__more_than이 query에 넣어주지 않은 경우 자동으로 추가됨
       nextUrl.searchParams.append(key, lastItem.id.toString());
