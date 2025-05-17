@@ -90,6 +90,34 @@ export class PostsService {
 
   // 1) 오름차 순으로 정렬하는 pagination만 구현한다.
   async paginatePosts(dto: PaginatePostDto) {
+    if (dto.page) {
+      return this.pagePaginatePosts(dto);
+    } else {
+      return this.cursorPaginatePosts(dto);
+    }
+  }
+
+  async pagePaginatePosts(dto: PaginatePostDto) {
+    /**
+     * data: Data[],
+     * total: number,
+     *
+     * [1] [2] [3] [4]
+     */
+    const [posts, count] = await this.postsRepository.findAndCount({
+      skip: dto.take * (dto.page - 1), // 2페이지 일 때 2-1 = 1(20)개 스킵
+      take: dto.take,
+      order: {
+        createdAt: dto.order__createdAt
+      }
+    });
+    return {
+      data: posts,
+      total: count
+    };
+  }
+
+  async cursorPaginatePosts(dto: PaginatePostDto) {
     const where: FindOptionsWhere<PostsModel> = {};
 
     if (dto.where__id__less_than) {
@@ -165,7 +193,6 @@ export class PostsService {
       next: nextUrl?.toString() ?? null
     };
   }
-
   async getPostById(id: number) {
     const post = await this.postsRepository.findOne({
       where: {

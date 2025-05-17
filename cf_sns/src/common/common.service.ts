@@ -10,6 +10,7 @@ import {
 import { BaseModel } from './entity/base.entity';
 import { FILTER_MAPPER } from './const/filter-mapper.const';
 import { filter } from 'rxjs';
+import { HOST, PROTOCOL } from './const/env.const';
 
 @Injectable()
 export class CommonService {
@@ -41,7 +42,53 @@ export class CommonService {
      *
      * where_title_ilike
      */
-    const findOptions = this.composeFindOptions<T>(dto)
+    const findOptions = this.composeFindOptions<T>(dto);
+
+    const results = await repository.find({
+      ...findOptions,
+      ...overrideFindOptions
+    });
+    const lastItem =
+      results.length > 0 && results.length === dto.take
+        ? results[results.length - 1]
+        : null;
+
+    const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/posts`);
+
+    if (nextUrl) {
+      /**
+       * dto의 키값들을 루핑하면서 키값에 해당되는 벨류가 존재하면 param에 그대로 붙여넣는다.
+       * 단, where__id_more_than 값만 lastItem의 마지막 값으로 넣어준다.
+       */
+      for (const key of Object.keys(dto)) {
+        if (dto[key]) {
+          if (
+            key !== 'where__id__more_than' &&
+            key !== 'where__id__less_than'
+          ) {
+            nextUrl.searchParams.append(key, dto[key]);
+          }
+          return {
+            data: results,
+            cursor: {
+              after: lastItem?.id ?? null
+            },
+            count: results.length,
+            next: nextUrl?.toString() ?? null
+          };
+        }
+      }
+
+      let key = null;
+
+      if (dto.order__createdAt === 'ASC') {
+        key = 'where__id__more_than';
+      } else {
+        key = 'where__id__less_than';
+      }
+      // where_id__more_than이 query에 넣어주지 않은 경우 자동으로 추가됨
+      nextUrl.searchParams.append(key, lastItem.id.toString());
+    }
   }
   private composeFindOptions<T extends BaseModel>(
     dto: BasePaginationDto
@@ -83,7 +130,7 @@ export class CommonService {
         };
       } else if (key.startsWith('order__')) {
         order = {
-          ...order
+          ...order,
           ...this.parseWhereFilter(key, value)
         };
       }
@@ -99,7 +146,7 @@ export class CommonService {
     key: string,
     value: any
   ): FindOptionsWhere<T> {
-    const options: FindOptionsWhere<T> = {}
+    const options: FindOptionsWhere<T> = {};
     /**
      * ex) where__id__more_than --> __를 기준으로 나눴을 때 --> ['where', 'id', 'more_than"]으로 나눌 수 있음
      */
@@ -107,10 +154,10 @@ export class CommonService {
 
     if (split.length !== 2 && split.length !== 3) {
       throw new BadRequestException(
-      `where 필터는 '__'로 split 했을 때 길이가 2 또는 3이어야 합니다. - 문제되는 키값 : ${key}`
-      )
+        `where 필터는 '__'로 split 했을 때 길이가 2 또는 3이어야 합니다. - 문제되는 키값 : ${key}`
+      );
     }
-    /** 
+    /**
      * 길이가 2일 경우는 where__id = 3
      * FindOptionsWhere로 풀어보면
      * {
@@ -131,14 +178,14 @@ export class CommonService {
        * }
        */
 
-      options[field] = value
+      options[field] = value;
     } else {
       /**
        * 길이가 3일 경우에는 Typeorm 유틸리티 적용이 필요한 경우
        * where__id__more_than의 경우 where는 버려도되고, 두 번째 값은 필터할 키 값이 되고, 세 번째 값은 typeorm 유틸리티가 된다.
        * FILTER_MAPPER에 미리 정의해둔 값들로, field 값에 FILTER_MAPPER에 서 해당되는 utility를 가져온 후 값에 적용해준다.
        */
-      
+
       // ['where', 'id', 'more_than']
       const [_, field, operator] = split;
 
@@ -153,28 +200,28 @@ export class CommonService {
       //   options[field] = filter[operator](values[0], values[1])
       // }
       //   else {}
-        options[field] = FILTER_MAPPER[operator](value)
-      }
-      return options 
+      options[field] = FILTER_MAPPER[operator](value);
+    }
+    return options;
   }
 
   private parseOrderFilter<T extends BaseModel>(
     key: string,
     value: any
   ): FindOptionsWhere<T> | FindOptionsOrder<T> {
-    const order: FindOptionsOrder<T> = {}
-    
+    const order: FindOptionsOrder<T> = {};
+
     /**
-     * order는 무조건 두 개로 스플리 ㅅ된다.
+     * order는 무조건 두 개로 스플릿 된다.
      */
-    const split = key.split('__')
+    const split = key.split('__');
     if (split.length !== 2) {
       throw new BadRequestException(
         `order 필터는 '__'로 split 했을 때 길이가 2여야 합니다. - 문제되는 키 값: ${key}`
-      )
+      );
     }
     const [_, field] = split;
     order[field] = value;
-    return order
+    return order;
   }
 }
