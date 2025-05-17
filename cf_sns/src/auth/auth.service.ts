@@ -1,16 +1,21 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersModel } from 'src/users/entities/users.entity';
-import { HASH_ROUNDS, JWT_SECRET } from './const/auth.const';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { ConfigService } from '@nestjs/config';
+import {
+  ENV_HASH_ROUNDS_KEY,
+  ENV_JWT_SECRET_KEY
+} from 'src/common/const/env-keys.const';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
-    private readonly usersService: UsersService // users.module.ts에서 export를 해줘야 사용가능
+    private readonly usersService: UsersService, // users.module.ts에서 export를 해줘야 사용가능
+    private readonly configService: ConfigService
   ) {}
 
   /**
@@ -79,7 +84,7 @@ export class AuthService {
   verifyToken(token: string) {
     try {
       return this.jwtService.verify(token, {
-        secret: JWT_SECRET
+        secret: this.configService.get<string>(ENV_JWT_SECRET_KEY)
       });
     } catch (e) {
       throw new UnauthorizedException('토큰이 만료됐거나 잘못된 토큰입니다');
@@ -88,7 +93,9 @@ export class AuthService {
 
   // accessToken과 refreshToken을 재발급 받고 싶을 때
   rotateToken(token: string, isRefreshToken: boolean) {
-    const decoded = this.jwtService.verify(token, { secret: JWT_SECRET });
+    const decoded = this.jwtService.verify(token, {
+      secret: this.configService.get<string>(ENV_JWT_SECRET_KEY)
+    });
 
     /**
      * sub: id
@@ -146,7 +153,7 @@ export class AuthService {
     };
 
     return this.jwtService.sign(payload, {
-      secret: JWT_SECRET,
+      secret: this.configService.get<string>(ENV_JWT_SECRET_KEY),
       // seconds
       expiresIn: isRefreshToken ? 3600 : 300
     });
@@ -209,7 +216,7 @@ export class AuthService {
   async registerWithEmail(user: RegisterUserDto) {
     const hash = await bcrypt.hash(
       user.password, // 이 실제 비밀번호를 hash함.
-      HASH_ROUNDS // 몇 번 해싱 돌릴껀지? Salt는 자동생성됨
+      parseInt(this.configService.get<string>(ENV_HASH_ROUNDS_KEY)) // 몇 번 해싱 돌릴껀지? Salt는 자동생성됨
     );
     // 해시가 생성이 잘 된 경우, 유저 생성
     const newUser = await this.usersService.createUser({

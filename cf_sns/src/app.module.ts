@@ -9,11 +9,16 @@ import { UsersModel } from './users/entities/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   // 다른 모듈을 불러올 때 사용
   imports: [
     PostsModule,
+    ConfigModule.forRoot({
+      envFilePath: '.env',
+      isGlobal: true
+    }),
     TypeOrmModule.forRoot({
       // 데이터베이스 타입
       type: 'postgres',
