@@ -30,7 +30,20 @@ export class CommonService {
     dto: BasePaginationDto,
     repository: Repository<T>,
     overrideFindOptions: FindManyOptions<T> = {}
-  ) {}
+  ) {
+    const findOptions = this.composeFindOptions<T>(dto);
+
+    const [data, count] = await repository.findAndCount({
+      ...findOptions,
+      ...overrideFindOptions
+    });
+
+    return {
+      data,
+      total: count
+    };
+  }
+
   private async cursorPaginate<T extends BaseModel>(
     dto: BasePaginationDto,
     repository: Repository<T>,
@@ -40,7 +53,7 @@ export class CommonService {
     /**
      * where__likeCount__more_than
      *
-     * where_title_ilike
+     * where__title__ilike
      */
     const findOptions = this.composeFindOptions<T>(dto);
 
@@ -53,7 +66,7 @@ export class CommonService {
         ? results[results.length - 1]
         : null;
 
-    const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/posts`);
+    const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/${path}`);
 
     if (nextUrl) {
       /**
@@ -68,14 +81,6 @@ export class CommonService {
           ) {
             nextUrl.searchParams.append(key, dto[key]);
           }
-          return {
-            data: results,
-            cursor: {
-              after: lastItem?.id ?? null
-            },
-            count: results.length,
-            next: nextUrl?.toString() ?? null
-          };
         }
       }
 
@@ -89,6 +94,14 @@ export class CommonService {
       // where_id__more_than이 query에 넣어주지 않은 경우 자동으로 추가됨
       nextUrl.searchParams.append(key, lastItem.id.toString());
     }
+    return {
+      data: results,
+      cursor: {
+        after: lastItem?.id ?? null
+      },
+      count: results.length,
+      next: nextUrl?.toString() ?? null
+    };
   }
   private composeFindOptions<T extends BaseModel>(
     dto: BasePaginationDto
@@ -199,8 +212,13 @@ export class CommonService {
       // if (operator === 'between') {
       //   options[field] = filter[operator](values[0], values[1])
       // }
-      //   else {}
-      options[field] = FILTER_MAPPER[operator](value);
+      //   else {
+      //          options[field] = FILTER_MAPPER[operator](value);}
+      if (operator === 'i_like') {
+        options[field] = FILTER_MAPPER[operator](`%${value}%`);
+      } else {
+        options[field] = FILTER_MAPPER[operator](value);
+      }
     }
     return options;
   }
