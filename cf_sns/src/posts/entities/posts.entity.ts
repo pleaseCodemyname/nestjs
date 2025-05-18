@@ -20,10 +20,11 @@ export class PostsModel extends BaseModel {
   title: string;
 
   @Column()
-  content: string;
   @IsString({
     message: stringValidationMessage
   })
+  content: string;
+
   @Column({
     nullable: true // 이미지가 필수가 아님
   })

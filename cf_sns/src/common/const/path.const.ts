@@ -15,7 +15,7 @@ export const PUBLIC_FOLDER_PATH = join(PROJECT_ROOT_PATH, PUBLIC_FOLDER_NAME);
 
 // 포스트 이미지를 저장할 폴더
 // {프로젝트의 위치}/public/posts
-export const POST_IAMGE_PATH = join(PUBLIC_FOLDER_PATH, POSTS_FOLDER_NAME);
+export const POST_IMAGE_PATH = join(PUBLIC_FOLDER_PATH, POSTS_FOLDER_NAME);
 
 // 절대경로 X, /public/posts/xxx.jpg
 export const POST_PUBLIC_IMAGE_PATH = join(

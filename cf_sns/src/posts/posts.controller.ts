@@ -14,7 +14,8 @@ import {
   Patch,
   UseInterceptors,
   ClassSerializerInterceptor,
-  Query
+  Query,
+  UploadedFile
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
@@ -23,6 +24,7 @@ import { User } from 'src/users/decorator/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginatePostDto } from './dto/paginate-post.dto';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -59,13 +61,15 @@ export class PostsController {
   // DTO - Data Transfer Object (데이터를 전송하는 객체)
   @Post()
   @UseGuards(AccessTokenGuard)
+  @UseInterceptors(FileInterceptor('image'))
   postPosts(
     @User('id') userId: number,
-    @Body() body: CreatePostDto
+    @Body() body: CreatePostDto,
+    @UploadedFile() file?: Express.Multer.File
     // @Body('title') title: string,
     // @Body('content') content: string
   ) {
-    return this.postsService.createPost(userId, body);
+    return this.postsService.createPost(userId, body, file?.filename);
   }
   // 4) PATCH /posts/:id
   //    id에 해당되는 POST를 변경한다.

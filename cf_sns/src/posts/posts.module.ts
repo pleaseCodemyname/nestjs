@@ -11,7 +11,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { extname } from 'path';
 import * as multer from 'multer';
 import {
-  POST_IAMGE_PATH,
+  POST_IMAGE_PATH,
   PROJECT_ROOT_PATH
 } from 'src/common/const/path.const';
 import { v4 as uuid } from 'uuid';
@@ -48,7 +48,7 @@ import { v4 as uuid } from 'uuid';
       },
       storage: multer.diskStorage({
         destination: function (req, res, cb) {
-          cb(null, POST_IAMGE_PATH);
+          cb(null, POST_IMAGE_PATH);
         },
         filename: function (req, file, cb) {
           cb(null, `${uuid()}${extname(file.originalname)}`); // 123123213213213-1231232-321321-321321.png/jpg/jpeg
