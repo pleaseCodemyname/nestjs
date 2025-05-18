@@ -26,10 +26,7 @@ import { PUBLIC_FOLDER_PATH } from './common/const/path.const';
     PostsModule,
     ServeStaticModule.forRoot({
       rootPath: PUBLIC_FOLDER_PATH,
-      serveRoot: '/public',
-      serveStaticOptions: {
-        index: false
-      }
+      serveRoot: '/public'
     }),
     ConfigModule.forRoot({
       envFilePath: '.env',
