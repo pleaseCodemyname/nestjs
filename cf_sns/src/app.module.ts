@@ -17,11 +17,20 @@ import {
   ENV_DB_PORT_KEY,
   ENV_DB_USERNAME_KEY
 } from './common/const/env-keys.const';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { PUBLIC_FOLDER_PATH } from './common/const/path.const';
 
 @Module({
   // 다른 모듈을 불러올 때 사용
   imports: [
     PostsModule,
+    ServeStaticModule.forRoot({
+      rootPath: PUBLIC_FOLDER_PATH,
+      serveRoot: '/public',
+      serveStaticOptions: {
+        index: false
+      }
+    }),
     ConfigModule.forRoot({
       envFilePath: '.env',
       isGlobal: true
