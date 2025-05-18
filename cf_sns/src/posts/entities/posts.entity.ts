@@ -24,6 +24,11 @@ export class PostsModel extends BaseModel {
   @IsString({
     message: stringValidationMessage
   })
+  @Column({
+    nullable: true // 이미지가 필수가 아님
+  })
+  image?: string; // image의 위치를 저장, 이미지 직접을 저장하지 않음
+
   @Column()
   likeCount: number;
 
