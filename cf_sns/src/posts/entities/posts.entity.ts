@@ -3,9 +3,16 @@ import { IsString } from 'class-validator';
 import { join } from 'path';
 import { POST_PUBLIC_IMAGE_PATH } from 'src/common/const/path.const';
 import { BaseModel } from 'src/common/entity/base.entity';
+import { ImageModel } from 'src/common/entity/image.entity';
 import { stringValidationMessage } from 'src/common/validation-message/string-validation.message';
 import { UsersModel } from 'src/users/entities/users.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn
+} from 'typeorm';
 
 @Entity()
 export class PostsModel extends BaseModel {
@@ -28,15 +35,12 @@ export class PostsModel extends BaseModel {
   })
   content: string;
 
-  @Column({
-    nullable: true // 이미지가 필수가 아님
-  })
-  @Transform(({ value }) => value && `/${join(POST_PUBLIC_IMAGE_PATH, value)}`)
-  image?: string; // image의 위치를 저장, 이미지 직접을 저장하지 않음
-
   @Column()
   likeCount: number;
 
   @Column()
   commentCount: number;
+
+  @OneToMany((type) => ImageModel, (image) => image.post)
+  images: ImageModel[];
 }

@@ -24,61 +24,9 @@ import {
 } from 'src/common/const/path.const';
 import { basename, join } from 'path';
 import { promises } from 'fs';
-
-/**
- * author: string;
- * title: string;
- * content: string;
- * likeCount: number;
- * commentCount: number;
- */
-
-// Post 인터페이스 생성
-export interface PostModel {
-  id: number;
-  author: string;
-  title: string;
-  content: string;
-  likeCount: number;
-  commentCount: number;
-}
-
-// PostModel을 List로[]
-let posts: PostModel[] = [
-  {
-    id: 1,
-    author: 'newjeans_official',
-    title: '뉴진스 민지',
-    content: '화장 고치고 있는 민지',
-    likeCount: 1000000,
-    commentCount: 777777
-  },
-  {
-    id: 2,
-    author: 'newjeans_official',
-    title: '뉴진스 해린',
-    content: '노래 연습하고 있는 해린',
-    likeCount: 1000000,
-    commentCount: 777777
-  },
-  {
-    id: 3,
-    author: 'blackpink_official',
-    title: '블랙핑크 로제',
-    content: '종합운동장에서 공영중인 로제',
-    likeCount: 1000000,
-    commentCount: 777777
-  }
-];
-
-export interface PostModel {
-  id: number;
-  author: string;
-  title: string;
-  content: string;
-  likeCount: number;
-  commentCount: number;
-}
+import { CreatePostImageDto } from './image/dto/create-image.dto';
+import { ImageModel } from 'src/common/entity/image.entity';
+import { DEFAULT_POST_FIND_OPTIONS } from './const/default-post-find-options.const';
 
 // Provider에 Injectable이라고 명시해줘야 프로바이더로 사용할 수 있다.
 // 프로바이더로 사용하고 싶은 클래스는 모듈에다가 등록해주고 Injectable로 Annotation해주기(posts.service.ts)
@@ -88,13 +36,15 @@ export class PostsService {
   constructor(
     @InjectRepository(PostsModel)
     private readonly postsRepository: Repository<PostsModel>,
+    @InjectRepository(ImageModel)
+    private readonly imageRepository: Repository<ImageModel>,
     private readonly commonService: CommonService,
     private readonly configService: ConfigService
   ) {}
 
   async getAllPosts() {
     return this.postsRepository.find({
-      relations: ['author']
+      ...DEFAULT_POST_FIND_OPTIONS
     });
   }
 
@@ -102,7 +52,8 @@ export class PostsService {
     for (let i = 0; i < 100; i++) {
       await this.createPost(userId, {
         title: `임의로 생성된 포스트 제목 ${i}`,
-        content: `임의로 생성된 포스트 내용 ${i}`
+        content: `임의로 생성된 포스트 내용 ${i}`,
+        images: []
       });
     }
   }
@@ -113,7 +64,7 @@ export class PostsService {
       dto,
       this.postsRepository,
       {
-        relations: ['author']
+        ...DEFAULT_POST_FIND_OPTIONS
       },
       'posts'
     );
@@ -225,10 +176,10 @@ export class PostsService {
   }
   async getPostById(id: number) {
     const post = await this.postsRepository.findOne({
+      ...DEFAULT_POST_FIND_OPTIONS,
       where: {
         id // id: id
-      },
-      relations: ['author']
+      }
     });
 
     if (!post) {
@@ -237,9 +188,9 @@ export class PostsService {
     return post;
   }
 
-  async createPostImage(dto: CreatePostDto) {
+  async createPostImage(dto: CreatePostImageDto) {
     // dto의 이미지 이름을 기반으로 파일의 경로를 생성한다.
-    const tempFilePath = join(TEMP_FOLDER_PATH, dto.image);
+    const tempFilePath = join(TEMP_FOLDER_PATH, dto.path);
     try {
       // promises: 파일 존재하는지 확인 (nodejs 기본 기능), 만약 존재하지 않는다면 에러 던짐
       await promises.access(tempFilePath);
@@ -253,10 +204,15 @@ export class PostsService {
     // {프로젝트경로}/public/posts/abcd.jpg
     const newPath = join(POST_IMAGE_PATH, fileName);
 
+    // save
+    const result = await this.imageRepository.save({
+      ...dto
+    });
+
     // 파일 옮기기
     await promises.rename(tempFilePath, newPath);
 
-    return true;
+    return result;
   }
 
   async createPost(authorId: number, postDto: CreatePostDto) {
@@ -270,6 +226,7 @@ export class PostsService {
         id: authorId // UsersModel의 id값, UsersModel
       },
       ...postDto,
+      images: [],
       likeCount: 0,
       commentCount: 0
     });
@@ -283,7 +240,7 @@ export class PostsService {
     const { title, content } = postDto;
 
     // save의 기능
-    // 1)  만약 데이터가 존재하지 않는다면(id 기준으로) 새로 생성
+    // 1) 만약 데이터가 존재하지 않는다면(id 기준으로) 새로 생성
     // 2) 같은 id가 존재하면, 존재하던 값을 업데이트 한다.
     const post = await this.postsRepository.findOne({
       where: {

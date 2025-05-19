@@ -25,6 +25,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginatePostDto } from './dto/paginate-post.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageModelType } from 'src/common/entity/image.entity';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -59,6 +60,17 @@ export class PostsController {
   // accessToken을 넣은 상태로 요청하면 로그인한 사용자임을 알 수 있음
 
   // DTO - Data Transfer Object (데이터를 전송하는 객체)
+  // A Model, B Model
+  // Post API -> A Model을 저장하고, B 모델을 저장한다.
+  // await repository.save(a);
+  // await repository.save(b);
+
+  // 만약에 a를 저장하다가 실패하면 b를 저장하면 안될 경우
+  // transaction: all or nothing(모두 실행되거나, 아님 전부 실행되지 않거나)
+  // start -> 시작
+  // commit -> 저장
+  // rollback -> 원상 복구
+
   @Post()
   @UseGuards(AccessTokenGuard)
   async postPosts(
@@ -67,8 +79,19 @@ export class PostsController {
     // @Body('title') title: string,
     // @Body('content') content: string
   ) {
-    await this.postsService.createPostImage(body);
-    return this.postsService.createPost(userId, body);
+    // image가 아무것도 없는 상태에서 포스트 생성
+    const post = await this.postsService.createPost(userId, body);
+
+    // image 생성
+    for (let i = 0; i < body.images.length; i++) {
+      await this.postsService.createPostImage({
+        post,
+        order: i,
+        path: body.images[i],
+        type: ImageModelType.POST_IMAGE
+      });
+    }
+    return this.postsService.getPostById(post.id);
   }
 
   // 4) PATCH /posts/:id
