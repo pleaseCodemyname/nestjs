@@ -4,7 +4,13 @@ import {
   Injectable,
   NotFoundException
 } from '@nestjs/common';
-import { FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
+import {
+  FindOptionsWhere,
+  LessThan,
+  MoreThan,
+  QueryRunner,
+  Repository
+} from 'typeorm';
 import { PostsModel } from './entities/posts.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -188,39 +194,20 @@ export class PostsService {
     return post;
   }
 
-  async createPostImage(dto: CreatePostImageDto) {
-    // dto의 이미지 이름을 기반으로 파일의 경로를 생성한다.
-    const tempFilePath = join(TEMP_FOLDER_PATH, dto.path);
-    try {
-      // promises: 파일 존재하는지 확인 (nodejs 기본 기능), 만약 존재하지 않는다면 에러 던짐
-      await promises.access(tempFilePath);
-    } catch (e) {
-      throw new BadRequestException('존재하지 않는 파일 입니다.');
-    }
-    // 파일의 이름만 가져오기 ex) /Users/aaa/abcd.jpg => abcd.jpg
-    const fileName = basename(tempFilePath);
-
-    // 새로 이동할 포스트 폴더의 경로 + 이미지 이름
-    // {프로젝트경로}/public/posts/abcd.jpg
-    const newPath = join(POST_IMAGE_PATH, fileName);
-
-    // save
-    const result = await this.imageRepository.save({
-      ...dto
-    });
-
-    // 파일 옮기기
-    await promises.rename(tempFilePath, newPath);
-
-    return result;
+  // QueryRunner가 입력됐을 때, query runner안에서 repository 가져오는 방법
+  getRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<PostsModel>(PostsModel)
+      : this.postsRepository;
   }
 
-  async createPost(authorId: number, postDto: CreatePostDto) {
+  async createPost(authorId: number, postDto: CreatePostDto, qr?: QueryRunner) {
     // 1) create -> 저장할 객체를 생성한다.
     // 2) save -> 객체를 저장한다. (create 메서드에서 생성한 객체로)
+    const repository = this.getRepository(qr);
 
     // id가 존재하지 않는 이유는 DB에서 자동으로 생성해주기 떄문이다.
-    const post = this.postsRepository.create({
+    const post = repository.create({
       // 어떤 author랑 연결할지 입력해야함
       author: {
         id: authorId // UsersModel의 id값, UsersModel
@@ -231,7 +218,7 @@ export class PostsService {
       commentCount: 0
     });
 
-    const newPost = await this.postsRepository.save(post);
+    const newPost = await repository.save(post);
 
     return newPost;
   }
