@@ -16,7 +16,10 @@ import {
   ClassSerializerInterceptor,
   Query,
   UploadedFile,
-  InternalServerErrorException
+  InternalServerErrorException,
+  UseFilters,
+  HttpException,
+  BadRequestException
 } from '@nestjs/common';
 import { PostsService } from './posts.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
@@ -31,6 +34,7 @@ import { PostsImagesService } from './image/images.service';
 import { LogInterceptor } from 'src/common/interceptor/log.interceptor';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
+import { HttpExceptionFilter } from 'src/common/exception-filter/http.exception-filter';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
