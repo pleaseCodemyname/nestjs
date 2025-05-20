@@ -30,6 +30,7 @@ import { ImageModel } from './common/entity/image.entity';
 import { LogMiddleware } from './common/middleware/log.middleware';
 import { ChatsModule } from './chats/chats.module';
 import { ChatsModel } from './chats/entity/chats.entity';
+import { MessagesModel } from './chats/messages/entity/messages.entity';
 
 @Module({
   // 다른 모듈을 불러올 때 사용
@@ -51,7 +52,7 @@ import { ChatsModel } from './chats/entity/chats.entity';
       username: process.env[ENV_DB_USERNAME_KEY],
       password: process.env[ENV_DB_PASSWORD],
       database: process.env[ENV_DB_DATABASE_KEY],
-      entities: [PostsModel, UsersModel, ImageModel, ChatsModel],
+      entities: [PostsModel, UsersModel, ImageModel, ChatsModel, MessagesModel],
       synchronize: true // NestJS에서 작성하는 Type ORM 코드와 데이터베이스의 동기화를 자동으로 맞출 것인가? (개발환경에서는 True, 프로덕션 환경에서는 False)
     }),
     UsersModule,
