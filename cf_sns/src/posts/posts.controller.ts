@@ -25,11 +25,12 @@ import { User } from 'src/users/decorator/user.decorator';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PaginatePostDto } from './dto/paginate-post.dto';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { ImageModelType } from 'src/common/entity/image.entity';
-import { DataSource } from 'typeorm';
+import { DataSource, QueryRunner as QR } from 'typeorm';
 import { PostsImagesService } from './image/images.service';
-import { networkInterfaces } from 'os';
+import { LogInterceptor } from 'src/common/interceptor/log.interceptor';
+import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
+import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -43,6 +44,7 @@ export class PostsController {
   // 1) GET /posts
   // 모든 포스트를 다 가져온다.
   @Get()
+  @UseInterceptors(LogInterceptor)
   getPosts(@Query() query: PaginatePostDto) {
     return this.postsService.paginatePosts(query);
   }
@@ -81,48 +83,28 @@ export class PostsController {
 
   @Post()
   @UseGuards(AccessTokenGuard)
+  @UseInterceptors(TransactionInterceptor)
   async postPosts(
     @User('id') userId: number,
-    @Body() body: CreatePostDto
-    // @Body('title') title: string,
-    // @Body('content') content: string
+    @Body() body: CreatePostDto,
+    @QueryRunner() qr: QR
   ) {
-    // 트랜잭션과 관련된 모든 쿼리를 담당할 쿼리 러너를 실행한다.
-    const qr = this.dataSource.createQueryRunner();
+    // 로직 실행 (image가 아무것도 없는 상태에서 포스트 생성)
+    const post = await this.postsService.createPost(userId, body, qr);
 
-    // 쿼리 러너에 연결 (쿼리 러너: 모든 쿼리를 한 번에 묶어주는 역할)
-    await qr.connect();
-
-    // 쿼리 러너에서 트랜잭션을 시작한다. 이 시점부터 같은 쿼리러너를 사용하면 트랜잭션 안에서 데이터베이스 안에서 데이터베이스 액션을 실행할 수 있다.
-    await qr.startTransaction();
-
-    // 로직 실행
-    try {
-      // image가 아무것도 없는 상태에서 포스트 생성
-      const post = await this.postsService.createPost(userId, body, qr);
-
-      // image 생성
-      for (let i = 0; i < body.images.length; i++) {
-        await this.postsImageService.createPostImage(
-          {
-            post,
-            order: i,
-            path: body.images[i],
-            type: ImageModelType.POST_IMAGE
-          },
-          qr
-        );
-      }
-      // commit: 정상 실행시 저장, 쿼리 러너를 사용해 실행했던 모든 DB 관련 기능이 전부 동시 실행 후 DB에 적용됨.
-      await qr.commitTransaction();
-      await qr.release();
-
-      return this.postsService.getPostById(post.id);
-    } catch (e) {
-      // Rollback: 어떤 에러든 에러가 던져지면 transaction을 종료하고 원래 상태로 되돌림
-      await qr.rollbackTransaction();
-      await qr.release();
+    // image 생성
+    for (let i = 0; i < body.images.length; i++) {
+      await this.postsImageService.createPostImage(
+        {
+          post,
+          order: i,
+          path: body.images[i],
+          type: ImageModelType.POST_IMAGE
+        },
+        qr
+      );
     }
+    return this.postsService.getPostById(post.id, qr);
   }
 
   // 4) PATCH /posts/:id
