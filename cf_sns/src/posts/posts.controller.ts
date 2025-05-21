@@ -35,6 +35,9 @@ import { LogInterceptor } from 'src/common/interceptor/log.interceptor';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { HttpExceptionFilter } from 'src/common/exception-filter/http.exception-filter';
+import { RolesEnum } from 'src/users/const/roles.const';
+import { Roles } from 'src/users/decorator/roles.decorator';
+import { IsPublic } from 'src/common/decorator/is-public.decorator';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -48,6 +51,7 @@ export class PostsController {
   // 1) GET /posts
   // 모든 포스트를 다 가져온다.
   @Get()
+  @IsPublic()
   // @UseInterceptors(LogInterceptor)
   getPosts(@Query() query: PaginatePostDto) {
     return this.postsService.paginatePosts(query);
@@ -65,6 +69,7 @@ export class PostsController {
   //    ex) id=1일 경우, id가 1인 포스트를 가져온다.
   //    parameter를 url로부터 가져올껀데, 가져오려는 parameter는 id이다. 가져온 파라미터는 id라는 변수에 저장을하고, id type은 string이다.
   @Get(':id')
+  @IsPublic()
   getPost(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.getPostById(id);
   }
@@ -126,7 +131,10 @@ export class PostsController {
   // 5) DELETE /posts/:id
   //    id에 해당되는 POST를 삭제한다.
   @Delete(':id')
+  @Roles(RolesEnum.ADMIN)
   deletePost(@Param('id', ParseIntPipe) id: number) {
     return this.postsService.deletePost(+id);
   }
+
+  // RBAC -> Role Based Access Control(역할 기반 접근 제어)
 }

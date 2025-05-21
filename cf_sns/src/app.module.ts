@@ -15,7 +15,7 @@ import { UsersModule } from './users/users.module';
 import { UsersModel } from './users/entities/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import {
   ENV_DB_DATABASE_KEY,
@@ -31,6 +31,8 @@ import { LogMiddleware } from './common/middleware/log.middleware';
 import { ChatsModule } from './chats/chats.module';
 import { ChatsModel } from './chats/entity/chats.entity';
 import { MessagesModel } from './chats/messages/entity/messages.entity';
+import { RolesGuard } from './users/guard/roles.guard';
+import { AccessTokenGuard } from './auth/guard/bearer-token.guard';
 
 @Module({
   // 다른 모듈을 불러올 때 사용
@@ -66,6 +68,14 @@ import { MessagesModel } from './chats/messages/entity/messages.entity';
     {
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor
+    },
+    {
+      provide: APP_GUARD,
+      useClass: AccessTokenGuard
+    },
+    {
+      provide: APP_GUARD,
+      useClass: RolesGuard
     }
   ]
 })
