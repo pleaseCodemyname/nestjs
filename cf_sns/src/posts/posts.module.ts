@@ -25,6 +25,7 @@ import { LogMiddleware } from 'src/common/middleware/log.middleware';
     CommonModule
   ],
   controllers: [PostsController],
-  providers: [PostsService, PostsImagesService]
+  providers: [PostsService, PostsImagesService],
+  exports: [PostsService]
 })
 export class PostsModule {}
