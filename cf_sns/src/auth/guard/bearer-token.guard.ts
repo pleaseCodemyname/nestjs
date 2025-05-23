@@ -7,7 +7,10 @@ import {
 import { AuthService } from '../auth.service';
 import { UsersService } from 'src/users/users.service';
 import { Reflector } from '@nestjs/core';
-import { IS_PUBLIC_KEY } from 'src/common/decorator/is-public.decorator';
+import {
+  IS_PUBLIC_KEY,
+  IsPublic
+} from 'src/common/decorator/is-public.decorator';
 
 @Injectable()
 export class BearerTokenGuard implements CanActivate {
@@ -16,6 +19,7 @@ export class BearerTokenGuard implements CanActivate {
     private readonly usersService: UsersService,
     private readonly reflector: Reflector
   ) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const isPublic = this.reflector.getAllAndOverride(IS_PUBLIC_KEY, [
       context.getHandler(),
