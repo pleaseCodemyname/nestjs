@@ -10,9 +10,9 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PostsModule } from './posts/posts.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { PostsModel } from './posts/entities/posts.entity';
+import { PostsModel } from './posts/entity/posts.entity';
 import { UsersModule } from './users/users.module';
-import { UsersModel } from './users/entities/users.entity';
+import { UsersModel } from './users/entity/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
@@ -33,6 +33,8 @@ import { ChatsModel } from './chats/entity/chats.entity';
 import { MessagesModel } from './chats/messages/entity/messages.entity';
 import { RolesGuard } from './users/guard/roles.guard';
 import { AccessTokenGuard } from './auth/guard/bearer-token.guard';
+import { CommentsModule } from './posts/comments/comments.module';
+import { CommentsModel } from './posts/comments/entity/comment.entity';
 
 @Module({
   // 다른 모듈을 불러올 때 사용
@@ -54,13 +56,21 @@ import { AccessTokenGuard } from './auth/guard/bearer-token.guard';
       username: process.env[ENV_DB_USERNAME_KEY],
       password: process.env[ENV_DB_PASSWORD],
       database: process.env[ENV_DB_DATABASE_KEY],
-      entities: [PostsModel, UsersModel, ImageModel, ChatsModel, MessagesModel],
+      entities: [
+        PostsModel,
+        UsersModel,
+        ImageModel,
+        ChatsModel,
+        MessagesModel,
+        CommentsModel
+      ],
       synchronize: true // NestJS에서 작성하는 Type ORM 코드와 데이터베이스의 동기화를 자동으로 맞출 것인가? (개발환경에서는 True, 프로덕션 환경에서는 False)
     }),
     UsersModule,
     AuthModule,
     CommonModule,
-    ChatsModule
+    ChatsModule,
+    CommentsModule
   ],
   controllers: [AppController],
   providers: [

@@ -11,6 +11,7 @@ import { BaseModel } from './entity/base.entity';
 import { FILTER_MAPPER } from './const/filter-mapper.const';
 import { ConfigService } from '@nestjs/config';
 import { ENV_HOST_KEY, ENV_PROTOCOL_KEY } from './const/env-keys.const';
+import { CommentsService } from 'src/posts/comments/comments.service';
 
 @Injectable()
 export class CommonService {
