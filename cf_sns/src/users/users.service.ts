@@ -2,12 +2,15 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UsersModel } from './entity/users.entity';
 import { Repository } from 'typeorm';
+import { UserFollowersModel } from './entity/user-followers.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UsersModel)
-    private readonly usersRepository: Repository<UsersModel>
+    private readonly usersRepository: Repository<UsersModel>,
+    @InjectRepository(UserFollowersModel)
+    private readonly userFollowersRepository: Repository<UserFollowersModel>
   ) {}
 
   // 1. 유저 생성 (이전버전)
@@ -68,5 +71,44 @@ export class UsersService {
         email
       }
     });
+  }
+
+  async followUser(followerId: number, followeeId: number) {
+    const result = await this.userFollowersRepository.save({
+      follower: {
+        id: followerId
+      },
+      followee: {
+        id: followeeId
+      }
+    });
+    return true;
+  }
+
+  async getFollowers(userId: number): Promise<UsersModel[]> {
+    /**
+     * [
+     *  {
+     *    id: number;
+     *    follower: UsersModel;
+     *    followee: UsersModl;
+     *    isConfirmed: boolean;
+     *    createdAt: Date;
+     *    updatedAt: Date;
+     *  }
+     * ]
+     */
+    const result = await this.userFollowersRepository.find({
+      where: {
+        followee: {
+          id: userId
+        }
+      },
+      relations: {
+        follower: true,
+        followee: true
+      }
+    });
+    return result.map((x) => x.follower);
   }
 }

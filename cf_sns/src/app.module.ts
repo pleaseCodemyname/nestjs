@@ -35,6 +35,7 @@ import { RolesGuard } from './users/guard/roles.guard';
 import { AccessTokenGuard } from './auth/guard/bearer-token.guard';
 import { CommentsModule } from './posts/comments/comments.module';
 import { CommentsModel } from './posts/comments/entity/comment.entity';
+import { UserFollowersModel } from './users/entity/user-followers.entity';
 
 @Module({
   // 다른 모듈을 불러올 때 사용
@@ -62,7 +63,8 @@ import { CommentsModel } from './posts/comments/entity/comment.entity';
         ImageModel,
         ChatsModel,
         MessagesModel,
-        CommentsModel
+        CommentsModel,
+        UserFollowersModel
       ],
       synchronize: true // NestJS에서 작성하는 Type ORM 코드와 데이터베이스의 동기화를 자동으로 맞출 것인가? (개발환경에서는 True, 프로덕션 환경에서는 False)
     }),
