@@ -80,5 +80,21 @@ export class CommentsService {
       throw new BadRequestException('존재하지 않는 댓글입니다.');
     }
     await this.commentsRepository.delete(id);
+
+    return id;
+  }
+
+  async isCommentMine(userId: number, commentId: number) {
+    return this.commentsRepository.exist({
+      where: {
+        id: commentId,
+        author: {
+          id: userId
+        }
+      },
+      relations: {
+        author: true
+      }
+    });
   }
 }

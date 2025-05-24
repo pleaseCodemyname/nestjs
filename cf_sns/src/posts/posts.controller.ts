@@ -38,7 +38,7 @@ import { HttpExceptionFilter } from 'src/common/exception-filter/http.exception-
 import { RolesEnum } from 'src/users/const/roles.const';
 import { Roles } from 'src/users/decorator/roles.decorator';
 import { IsPublic } from 'src/common/decorator/is-public.decorator';
-import { IsPostMineOrAdmin } from './guard/is-post-mine-or-admin.guard';
+import { IsPostMineOrAdminGuard } from './guard/is-post-mine-or-admin.guard';
 
 // 컨트롤러 첫번쨰 파라미터에는 "AppController"이라는 클래스 안에 있는 모든 엔드포인트들의 접두어를 붙이는 역할, Prefix역할
 @Controller('posts')
@@ -118,7 +118,7 @@ export class PostsController {
   // 4) PATCH /posts/:id
   //    id에 해당되는 POST를 변경한다.
   @Patch(':postId')
-  @UseGuards(IsPostMineOrAdmin)
+  @UseGuards(IsPostMineOrAdminGuard)
   putPost(
     @Param('postId', ParseIntPipe) id: number,
     @Body() body: UpdatePostDto
