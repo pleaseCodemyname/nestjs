@@ -85,10 +85,7 @@ export class UsersService {
     return true;
   }
 
-  async getFollowers(
-    userId: number,
-    includeNotConfirmed: boolean
-  ): Promise<UsersModel[]> {
+  async getFollowers(userId: number, includeNotConfirmed: boolean) {
     /**
      * [
      *  {
@@ -147,6 +144,18 @@ export class UsersService {
     await this.userFollowersRepository.save({
       ...existing,
       isConfirmed: true
+    });
+    return true;
+  }
+
+  async deleteFollow(followerId: number, followeeId: number) {
+    await this.userFollowersRepository.delete({
+      follower: {
+        id: followerId
+      },
+      followee: {
+        id: followeeId
+      }
     });
     return true;
   }
