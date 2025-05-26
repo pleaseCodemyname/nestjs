@@ -196,6 +196,28 @@ export class PostsService {
     return post;
   }
 
+  async incrementCommentCount(postId: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+    await repository.increment(
+      {
+        id: postId
+      },
+      'commentCount',
+      1
+    );
+  }
+
+  async decrementCommentCount(postId: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+    await repository.decrement(
+      {
+        id: postId
+      },
+      'commentCount',
+      1
+    );
+  }
+
   // QueryRunner가 입력됐을 때, query runner안에서 repository 가져오는 방법
   getRepository(qr?: QueryRunner) {
     return qr
